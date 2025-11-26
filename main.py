@@ -40,16 +40,6 @@ def init_db():
         con.execute("CREATE INDEX IF NOT EXISTS idx_text ON messages(text)")
 init_db()
 
-async def game(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🎮 Let's play a game!\nClick below to start:",
-        reply_markup={
-            "inline_keyboard": [
-                [{"text": "Play Dino Game 🦖", "url": "https://chromedino.com/"}]
-            ]
-        },
-    )
-
 async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, annotate: bool = False):
     msg = update.effective_message
 
@@ -194,7 +184,6 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/linkedin - Get your LinkedIn profile URL\n"
         "/gmail  - Get the Gmail link\n"
         "/geeks  - Get the GeeksforGeeks URL\n"
-        "/game  - Play Dino Game\n"
         "🔎 *Search Features:*\n"
         "/search <term> - Search messages directly (e.g. `/search grey car`)\n"
         "/searchwords - Start interactive search mode (the bot asks what to search)\n"
@@ -244,7 +233,6 @@ def main():
     app.add_handler(CommandHandler("youtube", youtube_url))
     app.add_handler(CommandHandler("linkedin", linkedIn_url))
     app.add_handler(CommandHandler("geeks", geeks_url))
-    app.add_handler(CommandHandler("game", game))
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.IMAGE, analyze_photo))
     app.add_handler(CommandHandler("search", search_cmd))
 
