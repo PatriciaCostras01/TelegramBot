@@ -7,6 +7,7 @@ from telegram.ext import (
     filters,
 )
 import sqlite3
+from restrictions import setup_restrictions
 from pathlib import Path
 from telegram.ext import ConversationHandler
 import os
@@ -45,11 +46,11 @@ async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, anno
 
     file_id = None
     if msg.photo:
-        file_id = msg.photo[-1].file_id 
+        file_id = msg.photo[-1].file_id
     elif msg.document and msg.document.mime_type.startswith("image/"):
         file_id = msg.document.file_id
     else:
-        await msg.reply_text("Send a photo and the bot will recognize objects in it.")
+        await msg.reply_text("Send a photo and she’ll try her best to recognize what’s inside!")
         return
 
     tg_file = await context.bot.get_file(file_id)
@@ -62,37 +63,48 @@ async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, anno
     names = r.names
 
     if r.boxes is None or len(r.boxes) == 0:
-        await msg.reply_text("I found nothing.")
+        await msg.reply_text("She really tried her best, but she couldn’t find any objects here. Let’s try another pic! Maybe second time’s the charm?")
         return
 
     dets = []
-    for b, c, s in zip(r.boxes.xyxy.cpu().numpy(), r.boxes.cls.cpu().numpy(), r.boxes.conf.cpu().numpy()):
+    for b, c, s in zip(
+        r.boxes.xyxy.cpu().numpy(),
+        r.boxes.cls.cpu().numpy(),
+        r.boxes.conf.cpu().numpy()
+    ):
         dets.append((names[int(c)], float(s), b.astype(int)))
-    dets.sort(key=lambda x: x[1], reverse=True)
 
-    lines = [f"• {label} ({score:.2f})" for label, score, _ in dets[:10]]
-    await msg.reply_text("I found:\n" + "\n".join(lines))
+    dets.sort(key=lambda x: x[1], reverse=True)
+    best_label, best_score, best_box = dets[0]
+
+    percent = best_score * 100
+    await msg.reply_text(
+        f"I think this is a **{best_label}** "
+        f"(confidence: {best_score:.2f} ≈ {percent:.0f}%).",
+        parse_mode="Markdown"
+    )
 
     if annotate:
+        x1, y1, x2, y2 = best_box
         draw = img.copy()
-        for label, score, (x1, y1, x2, y2) in dets:
-            cv2.rectangle(draw, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            txt = f"{label} {score:.2f}"
-            (tw, th), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-            cv2.rectangle(draw, (x1, y1 - th - 6), (x1 + tw + 4, y1), (0, 255, 0), -1)
-            cv2.putText(draw, txt, (x1 + 2, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+        cv2.rectangle(draw, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        txt = f"{best_label} {best_score:.2f}"
+        (tw, th), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+        cv2.rectangle(draw, (x1, y1 - th - 6), (x1 + tw + 4, y1), (0, 255, 0), -1)
+        cv2.putText(draw, txt, (x1 + 2, y1 - 4),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
 
         out = Image.fromarray(draw)
         bio = io.BytesIO()
         out.save(bio, format="JPEG", quality=90)
         bio.seek(0)
-        await msg.reply_photo(photo=bio, caption="Detecții anotate")
-
+        await msg.reply_photo(photo=bio, caption="Best detection")
 
 async def index_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.effective_message
     if not msg or not msg.text:
         return
+
     with sqlite3.connect(DB_PATH) as con:
         con.execute(
             "INSERT OR IGNORE INTO messages "
@@ -108,13 +120,19 @@ async def index_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
         )
 
+    await msg.reply_text("📝 SugarGlitter secretly indexed this message for search~ ✨")
+
+
 async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = " ".join(context.args) if context.args else ""
     if not query:
         await update.message.reply_text(
-            "Use /search <term> for direct search or /searchwords to start interactive mode."
+            "✨ SugarGlitter needs a search term, sweet friend!\n"
+            "Try `/search <word>` or use `/searchwords` for a magical guided search~ 💖",
+            parse_mode="Markdown"
         )
         return
+
     chat_id = update.effective_chat.id
     with sqlite3.connect(DB_PATH) as con:
         con.row_factory = sqlite3.Row
@@ -125,10 +143,12 @@ async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             (chat_id, f"%{query.lower()}%"),
         )
         rows = cur.fetchall()
+
     if not rows:
         await update.message.reply_text(
-            f"No messages found containing '{query}'.\n"
-            "Remember: the bot can only search messages it has already seen."
+            f"🌸 Aww… SugarGlitter couldn’t find anything containing *'{query}'*.\n"
+            "Maybe try another sparkly keyword? ✨",
+            parse_mode="Markdown"
         )
         return
 
@@ -136,15 +156,23 @@ async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"• @{(r['username'] or 'user')} (# {r['message_id']}):\n{r['text'][:400]}"
         for r in rows
     )
-    await update.message.reply_text(f"Results for '{query}' (top 10):\n\n{result}")
+    await update.message.reply_text(
+        f"💖✨ SugarGlitter found some glittery matches for *'{query}'*:\n\n{result}",
+        parse_mode="Markdown"
+    )
+
 
 async def search_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("What would you like to search for?")
+    await update.message.reply_text(
+        "🌈✨ What magical thing would you like SugarGlitter to search for? 💖"
+    )
     return ASK_QUERY
+
 
 async def search_receive_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.message.text.strip()
     chat_id = update.effective_chat.id
+
     with sqlite3.connect(DB_PATH) as con:
         con.row_factory = sqlite3.Row
         cur = con.execute(
@@ -154,44 +182,61 @@ async def search_receive_query(update: Update, context: ContextTypes.DEFAULT_TYP
             (chat_id, f"%{query.lower()}%"),
         )
         rows = cur.fetchall()
+
     if not rows:
-        await update.message.reply_text(f"No results found for '{query}'.")
+        await update.message.reply_text(
+            f"💗 SugarGlitter found no sparkles for *'{query}'*.\n"
+            "Try another magical word? ✨",
+            parse_mode="Markdown"
+        )
         return ConversationHandler.END
+
     result = "\n\n".join(
         f"• @{(r['username'] or 'user')} (# {r['message_id']}):\n{r['text'][:400]}"
         for r in rows
     )
-    await update.message.reply_text(f"Results for '{query}' (top 10):\n\n{result}")
+
+    await update.message.reply_text(
+        f"🎀✨ Here are SugarGlitter’s glittery results for *'{query}'*:\n\n{result}",
+        parse_mode="Markdown"
+    )
     return ConversationHandler.END
 
+
 async def search_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Search cancelled.")
+    await update.message.reply_text(
+        "🌸 Oh, the search was cancelled~ SugarGlitter will sparkle again whenever you need her! 💖"
+    )
     return ConversationHandler.END
 
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Hello! /help to see available commands."
+        "🌸 Hiii! SugarGlitter just sprinkled into the chat! ✨💖\n"
+        "Use /help to see all the magical things I can do! 🎀"
     )
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🤖 *Available Commands:*\n\n"
-        "/start  - Start the bot\n"
-        "/help   - Show this help message\n"
-        "/youtube - Get the YouTube link\n"
-        "/linkedin - Get your LinkedIn profile URL\n"
-        "/gmail  - Get the Gmail link\n"
-        "/geeks  - Get the GeeksforGeeks URL\n"
-        "🔎 *Search Features:*\n"
-        "/search <term> - Search messages directly (e.g. `/search grey car`)\n"
-        "/searchwords - Start interactive search mode (the bot asks what to search)\n"
-        "/cancel - Cancel the current interactive flow\n\n"
-        "🖼️ *Image Recognition:*\n"
-        "Send a photo directly to the bot and it will recognize objects in it "
-        "(e.g. person, car, dog, etc.)."
-    , parse_mode="Markdown")
+        "💖✨ *SugarGlitter Command Menu* ✨💖\n\n"
+        "🍬 /start – Wake up this girls SugarGlitter and begin the magic\n"
+        "🌸 /help – Show this sweet little guide\n"
+        "🎀 /youtube – A sparkly doorway to YouTube\n"
+        "💗 /linkedin – Your professional glitter profile\n"
+        "💌 /gmail – Your shiny Gmail link\n"
+        "📚 /geeks – A nerdy sprinkle of GeeksforGeeks\n\n"
+        
+        "🔎✨ *Search Spells:* ✨🔍\n"
+        "💎 /search <term> – Instantly search messages (e.g. `/search grey car`)\n"
+        "🌈 /searchwords – SugarGlitter asks you what to search for\n"
+        "🍭 /cancel – Cancel the current search enchantment\n\n"
+
+        "🖼️💫 *Image Magic:* 💫🖼️\n"
+        "Send SugarGlitter a photo and she’ll try her best to recognize what’s inside!\n"
+        "✨ (people, cars, pets, objects… and everything sparkly) ✨",
+        parse_mode="Markdown"
+    )
 
 
 async def gmail_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -212,13 +257,18 @@ async def geeks_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        f"Sorry, '{update.message.text}' is not a valid command"
+        f"🍬 *'{update.message.text}'* isn’t in SugarGlitter’s candy jar of commands! Try /help for something yummy! 💗",
+        parse_mode="Markdown"
     )
+
 
 async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        f"Sorry, I can't recognize you. You said '{update.message.text}'"
+        f"🧁 Aww… *'{update.message.text}'* doesn’t make much sense to SugarGlitter. "
+        f"Try something a bit clearer? 💗",
+        parse_mode="Markdown"
     )
+
 
 def main():
     token = os.getenv("BOT_TOKEN")
@@ -233,7 +283,9 @@ def main():
     app.add_handler(CommandHandler("youtube", youtube_url))
     app.add_handler(CommandHandler("linkedin", linkedIn_url))
     app.add_handler(CommandHandler("geeks", geeks_url))
+
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.IMAGE, analyze_photo))
+
     app.add_handler(CommandHandler("search", search_cmd))
 
     conv = ConversationHandler(
@@ -247,10 +299,13 @@ def main():
 
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, index_message))
 
+    setup_restrictions(app)
+
     app.add_handler(MessageHandler(filters.COMMAND, unknown))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, unknown_text))
 
     app.run_polling()
+
 
 
 
