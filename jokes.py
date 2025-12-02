@@ -1,0 +1,45 @@
+import random
+
+JOKES = [
+    "✨ Why did the cookie cry? Because its mom was a wafer too long! 🍪😭",
+    "💖 Why don’t eggs tell jokes? They’d crack each other up! 🥚😂",
+    "🌸 What do you call a bear with no teeth? A gummy bear! 🧸🍬",
+    "✨ Why was the computer cold? Because it forgot to close its Windows! 🖥️❄️",
+    "🎀 What do you call fake spaghetti? An impasta! 🍝😄",
+    "🍬 Why don’t skeletons fight each other? They don’t have the guts! 💀😂",
+    "🌸 Why did the scarecrow win an award? Because he was outstanding in his field! 🌾🏆",
+    "✨ What do you call cheese that isn’t yours? Nacho cheese! 🧀🤣",
+    "💗 Why did the math book look sad? Because it had too many problems! 📚😢",
+    "🎀 What do you call a sleeping bull? A bulldozer! 🐂💤",
+    "🍓 Why was the strawberry crying? Because it was in a jam! 😭🍓",
+    "🌙 Why did the bicycle fall over? Because it was two-tired! 🚲😂",
+    "✨ What do you call a fish wearing a crown? A king fish! 👑🐟",
+    "💞 Why was the broom late? It swept in! 🧹😴",
+    "🍭 Why did the coffee file a police report? It got mugged! ☕🚓",
+    "🌸 What’s a ghost’s favorite dessert? I scream! 👻🍨",
+    "🎀 Why did the tomato turn red? Because it saw the salad dressing! 🍅👗",
+    "✨ What do you call a dinosaur with bad vision? A Do-you-think-he-saurus! 🦕😂",
+    "💖 Why did the banana go to the doctor? Because it wasn’t peeling well! 🍌🤕",
+    "💼 Why did the developer go broke? Because she used up all her cache! 💸💻",
+    "📊 My boss told me to have a good day… so I went home. 🏠😄",
+    "🖥️ Why do programmers prefer dark mode? Because light attracts bugs! 🐞✨",
+    "💼 Why don’t project managers ever play hide and seek? Because good luck hiding when they keep checking your status every 2 minutes! 📋😂",
+    "📧 Why was the email so cold? It had too many drafts! ❄️📨",
+    "☕ I told my PM I finished 90% of the task. Now I just need 3 more weeks to finish the other 10%. 😊😅",
+    "🖱️ Why did the computer go to therapy? Too many unresolved issues. 💻😔",
+    "📞 Why did HR cross the road? To schedule a meeting about why the chicken crossed the road. 🐔🗂️",
+    "🧑‍💻 Why do devs hate nature? Too many branches. 🌳😂",
+    "📅 What’s a programmer’s favorite hangout? The break-point room! 🛑😄",
+    "📌 Why did the intern bring a ladder to the office? Because the project was high-level. 🪜💼",
+    "🖥️ Why was the computer late to the meeting? It had a hard drive. 🚗😂",
+    "💼 Why do corporate employees love Zoom? Because it lets them look productive while folding laundry. 🧺💻",
+    "🧠 My password is ‘incorrect’. So when I forget it, the computer tells me: Your password is incorrect. 🔐😎",
+    "📁 Why was the corporate folder always stressed? Too much pressure… and too many stakeholders inside. 😭🗂️",
+    "🛠️ Why did the QA engineer cross the road? To check if it still works on the other side. 🧐👌",
+    "💼 Why did the employee get fired from the calendar factory? She took a day off. 📅🤣",
+    "📉 Our project is like a software update: takes longer than expected and nobody asked for it. 😅💼",
+]
+
+async def random_joke(update, context):
+    joke = random.choice(JOKES)
+    await update.message.reply_text(f"{joke}")
