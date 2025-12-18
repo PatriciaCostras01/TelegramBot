@@ -5,6 +5,7 @@ import logging
 
 _logger = logging.getLogger(__name__)
 import os
+
 ASK_MOOD = 2
 
 
@@ -20,14 +21,12 @@ async def song_mood_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def song_mood_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text or ""
-    mood = normalize_mood(text)
     _logger.debug("Received song mood input: %r from %s", text, update.effective_user and update.effective_user.id)
     mood = normalize_mood(text)
     _logger.debug("Normalized mood: %r", mood)
     # Temporary visible debug for troubleshooting in Telegram chat
     if os.getenv("DEBUG_TELEGRAM") == "1":
         await update.message.reply_text(f"DEBUG: received={text!r} normalized={mood!r}")
-    mood = normalize_mood(text)
 
     if not mood:
         await update.message.reply_text(
@@ -62,10 +61,23 @@ async def song_mood_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
+
 async def song_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🎶 The song selection was cancelled. If you want another tune, try /song again! 💖"
     )
+    return ConversationHandler.END
+
+
+async def cancel_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🌸 SugarGlitter is going to sleep now… "
+        "If you want her back, run the bot again and use /start 💖"
+    )
+
+    _logger.warning("Global /cancel called – stopping application from chat %s", update.effective_chat.id)
+
+    await context.application.stop()
     return ConversationHandler.END
 
 

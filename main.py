@@ -22,7 +22,6 @@ from search import (
     search_receive_query,
     search_cancel,
 )
-
 from restrictions import setup_restrictions
 from links import gmail_url, youtube_url, linkedIn_url, geeks_url
 from mai import (
@@ -31,6 +30,7 @@ from mai import (
     song_mood_start,
     song_mood_receive,
     song_cancel,
+    cancel_cmd,
     unknown,
     unknown_text,
     ASK_MOOD,
@@ -38,14 +38,9 @@ from mai import (
 
 load_dotenv()
 
-if __name__ == "__main__":
-    init_db()
-
+# Configure centralized logging early so all modules use the same configuration
 from logging_config import configure_logging
 configure_logging()
-
-if __name__ == "__main__":
-    init_db()
 
 if __name__ == "__main__":
     init_db()
@@ -57,7 +52,7 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(token).build()
 
 
-    # Commands simple
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("gmail", gmail_url))
@@ -66,14 +61,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("geeks", geeks_url))
     app.add_handler(CommandHandler("joke", random_joke))
     app.add_handler(CommandHandler("compliment", random_compliment))
-
-    # Photo handler
-    app.add_handler(MessageHandler(filters.PHOTO | filters.Document.IMAGE, analyze_photo))
-
-    # /search cu argument
-    app.add_handler(CommandHandler("search", search_cmd))
-
-    # Conversation pentru /searchwords
 
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.IMAGE, analyze_photo))
 
@@ -99,28 +86,14 @@ if __name__ == "__main__":
     )
     app.add_handler(song_conv)
 
-    # Conversation pentru /song
-    song_conv = ConversationHandler(
-        entry_points=[CommandHandler("song", song_mood_start)],
-        states={
-            ASK_MOOD: [MessageHandler(filters.TEXT & ~filters.COMMAND, song_mood_receive)]
-        },
-        fallbacks=[CommandHandler("cancel", search_cancel)],
-    )
-    app.add_handler(song_conv)
-
-    # Indexare mesaje text
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, index_message))
 
-    # Comenzi necunoscute
+    app.add_handler(CommandHandler("cancel", cancel_cmd))
+
     app.add_handler(MessageHandler(filters.COMMAND, unknown))
-
-
-    # Text necunoscut (atenție: cu handler-ul de mai sus, acesta s-ar putea să nu fie atins
-    # pentru că index_message consumă deja TEXT & ~COMMAND, dar îl las exact ca în codul tău inițial)
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, unknown_text))
 
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, unknown_text))
     # Enable moderation handlers and /rules command
     setup_restrictions(app)
     app.run_polling()
+
