@@ -23,19 +23,19 @@ All logic is neatly organized into separate modules for readability and maintain
 
 project/
 │
-├── main.py              # App entry point & handler registration
-├── photo.py             # Image analysis using YOLOv8
-├── search.py            # Message indexing, search, and SQLite logic
-├── mai.py               # General commands: /start, /help, /song
-├── links.py             # Quick-link commands
-├── restrictions.py      # Text moderation rules and warnings
+├── main.py              # Application entry point + handler registration
+├── photo.py             # Image analysis (YOLOv8 integration)
+├── search.py            # Message indexing, search engine, and SQLite logic
+├── mai.py               # General bot commands: /start, /help, /song
+├── links.py             # Quick-link commands (/instagram, /github, etc.)
+├── restrictions.py      # Text moderation rules & warning messages
 │
-├── jokes.py             # Random jokes
-├── compliments.py       # Random compliments
-├── songs.py             # Mood normalization + song selection
+├── jokes.py             # Random jokes generator
+├── compliments.py       # Random compliments generator
+├── songs.py             # Mood normalization + song recommendation logic
 │
 ├── index.db             # SQLite database (auto-generated)
-└── .env                 # Telegram BOT_TOKEN
+└── .env                 # Environment variables (Telegram BOT_TOKEN)
 
 
 🚀 Installation & Setup
