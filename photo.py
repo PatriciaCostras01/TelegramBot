@@ -1,10 +1,7 @@
 import io
-<<<<<<< HEAD
-=======
 import time
 import asyncio
 import logging
->>>>>>> 0ed699c (Update SugarGlitter project)
 import numpy as np
 from PIL import Image
 import cv2
@@ -14,8 +11,6 @@ from telegram.ext import ContextTypes
 
 yolo = YOLO("yolov8n.pt")
 
-<<<<<<< HEAD
-=======
 # Rate limiting / concurrency controls
 RATE_LIMIT_SECONDS = 10  # per-user cooldown between image analyses
 MAX_CONCURRENT_INFERENCES = 2  # global concurrent YOLO runs
@@ -25,18 +20,15 @@ _last_request_lock = asyncio.Lock()
 _inference_semaphore = asyncio.Semaphore(MAX_CONCURRENT_INFERENCES)
 _logger = logging.getLogger(__name__)
 
->>>>>>> 0ed699c (Update SugarGlitter project)
-
 async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, annotate: bool = False):
     msg = update.effective_message
 
-<<<<<<< HEAD
     file_id = None
     if msg.photo:
         file_id = msg.photo[-1].file_id
     elif msg.document and msg.document.mime_type.startswith("image/"):
         file_id = msg.document.file_id
-=======
+
     user_id = (update.effective_user.id if update.effective_user else None) or update.effective_chat.id
 
     # Per-user cooldown
@@ -57,7 +49,7 @@ async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, anno
         mime = getattr(msg.document, "mime_type", None)
         if mime and mime.startswith("image/"):
             file_id = msg.document.file_id
->>>>>>> 0ed699c (Update SugarGlitter project)
+
     else:
         await msg.reply_text("Send a photo and she’ll try her best to recognize what’s inside!")
         return
@@ -67,10 +59,9 @@ async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, anno
     pil = Image.open(io.BytesIO(img_bytes)).convert("RGB")
     img = np.array(pil)
 
-<<<<<<< HEAD
     results = yolo.predict(img, conf=0.25, verbose=False)
     r = results[0]
-=======
+
     # Limit global concurrency and run heavy inference in a thread to avoid blocking the event loop
     await _inference_semaphore.acquire()
     try:
@@ -81,7 +72,10 @@ async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, anno
         r = results[0]
     finally:
         _inference_semaphore.release()
->>>>>>> 0ed699c (Update SugarGlitter project)
+
+    results = yolo.predict(img, conf=0.25, verbose=False)
+    r = results[0]
+
     names = r.names
 
     if r.boxes is None or len(r.boxes) == 0:

@@ -1,9 +1,6 @@
 import random
-<<<<<<< HEAD
-=======
 import unicodedata
 
->>>>>>> 0ed699c (Update SugarGlitter project)
 MOOD_SONGS = {
     "sad": [
         ("Florin Salam – O viață de desfrâu", "https://www.youtube.com/watch?v=YxTUrp_gfYM"),
@@ -11,12 +8,11 @@ MOOD_SONGS = {
         ("Nicolae Guță – Amintirea", "https://www.youtube.com/watch?v=8AeR9sgPik8"),
         ("Laura Vass – Te-am iubit dar m-ai mințit", "https://www.youtube.com/watch?v=Lp6TQhNnLFc"),
         ("Denisa – Ce frumoasă-i viața mea", "https://www.youtube.com/watch?v=kqgC6KTQJ0M"),
-<<<<<<< HEAD
-=======
+
         ("Nicolae Guță – Mi-ai lasat o floare in glastra", "https://www.youtube.com/watch?v=IrMk66nFWPI&list=RDIrMk66nFWPI&start_radio=1"),
         ("Vali Vijelie – De ce mă minți", "https://www.youtube.com/watch?v=YkXUu0Y3b5I"),
         ("Florin Salam – 7 trandafiri", "https://www.youtube.com/watch?v=Zcq8XpM5hMo&list=RDZcq8XpM5hMo&start_radio=1"),
->>>>>>> 0ed699c (Update SugarGlitter project)
+
     ],
 
     "love": [
@@ -25,11 +21,10 @@ MOOD_SONGS = {
         ("Costi Ioniță – Tu ești viața mea", "https://www.youtube.com/watch?v=hV7rEOBz9lI"),
         ("Denisa – Vreau să-mi spui iară că mă iubești", "https://www.youtube.com/watch?v=ZrQ2hYwT5Ks"),
         ("Adi Minune – Mă iubești sau mă minți", "https://www.youtube.com/watch?v=ZoZyZb9FseE"),
-<<<<<<< HEAD
-=======
+
         ("Florin Salam & Gabita de la Craiova – Doar dragostea", "https://www.youtube.com/watch?v=E0dKmtZdv7c&list=RDE0dKmtZdv7c&start_radio=1"),
         ("Florin Salam & Printesa de aur – Unii se lauda", "https://www.youtube.com/watch?v=X_ox89CjBOU&list=RDX_ox89CjBOU&start_radio=1"),
->>>>>>> 0ed699c (Update SugarGlitter project)
+
     ],
 
     "party": [
@@ -38,11 +33,10 @@ MOOD_SONGS = {
         ("Nicolae Guță – Până dimineață", "https://www.youtube.com/watch?v=L1zGQ-ca9Vc"),
         ("Liviu Guță – Fata mea", "https://www.youtube.com/watch?v=yLJeYf1Q14c"),
         ("Jean de la Craiova – Rău mă dor ochii mă dor", "https://www.youtube.com/watch?v=YtasFr9YJgw"),
-<<<<<<< HEAD
-=======
+
         ("Adi de la Vâlcea – Lume, lume", "https://www.youtube.com/watch?v=H1pX2k1bXME"),
         ("Florin Salam & Ionut Sturzea – Ma gandesc la tine", "https://www.youtube.com/watch?v=L-Zi_tTur9k&list=RDL-Zi_tTur9k&start_radio=1"),
->>>>>>> 0ed699c (Update SugarGlitter project)
+
     ],
 
     "chill": [
@@ -53,11 +47,9 @@ MOOD_SONGS = {
         ("Nicolae Guță – Ce bine ne stă împreună (slow version)", "https://www.youtube.com/watch?v=Ngdn0M3Cl7I"),
     ],
 
-<<<<<<< HEAD
-        "happy": [
-=======
+
     "happy": [
->>>>>>> 0ed699c (Update SugarGlitter project)
+
         ("Vali Vijelie – Norocul meu", "https://www.youtube.com/watch?v=Ubbmxa0dzM0"),
         ("Florin Salam – Traieste-ti viata", "https://www.youtube.com/watch?v=YxTUrp_gfYM"),
         ("Liviu Guță – Viața e frumoasă", "https://www.youtube.com/watch?v=PGXJ1ANu1vU"),
@@ -78,23 +70,20 @@ MOOD_ALIASES = {
 def normalize_mood(text: str) -> str | None:
     if not text:
         return None
-<<<<<<< HEAD
     t = text.lower().strip()
-=======
     # Normalize and remove diacritics for more robust matching
     t = text.lower().strip()
     t = unicodedata.normalize("NFKD", t)
     t = "".join(ch for ch in t if not unicodedata.combining(ch))
->>>>>>> 0ed699c (Update SugarGlitter project)
+    t = text.lower().strip()
 
     if t in MOOD_SONGS:
         return t
 
-<<<<<<< HEAD
     for mood, aliases in MOOD_ALIASES.items():
         if any(word in t for word in aliases):
             return mood
-=======
+
     # Token-aware matching: check aliases as whole words first
     tokens = set(t.split())
     for mood, aliases in MOOD_ALIASES.items():
@@ -104,7 +93,10 @@ def normalize_mood(text: str) -> str | None:
             a = "".join(ch for ch in a if not unicodedata.combining(ch))
             if a in tokens or a == t or a in t:
                 return mood
->>>>>>> 0ed699c (Update SugarGlitter project)
+
+    for mood, aliases in MOOD_ALIASES.items():
+        if any(word in t for word in aliases):
+            return mood
 
     return None
 

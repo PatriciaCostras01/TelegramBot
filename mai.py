@@ -1,22 +1,15 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 from songs import normalize_mood, pick_song_for_mood
-<<<<<<< HEAD
-=======
 import logging
 
 _logger = logging.getLogger(__name__)
 import os
->>>>>>> 0ed699c (Update SugarGlitter project)
-
 ASK_MOOD = 2
 
 
 async def song_mood_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-<<<<<<< HEAD
-=======
     _logger.debug("song_mood_start triggered by user %s", update.effective_user and update.effective_user.id)
->>>>>>> 0ed699c (Update SugarGlitter project)
     await update.message.reply_text(
         "🎧✨ How are you feeling today, sweet soul?\n"
         "You can say things like: `sad`, `happy`, `in love`, `angry`, `chill`… 💖",
@@ -27,16 +20,14 @@ async def song_mood_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def song_mood_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text or ""
-<<<<<<< HEAD
     mood = normalize_mood(text)
-=======
     _logger.debug("Received song mood input: %r from %s", text, update.effective_user and update.effective_user.id)
     mood = normalize_mood(text)
     _logger.debug("Normalized mood: %r", mood)
     # Temporary visible debug for troubleshooting in Telegram chat
     if os.getenv("DEBUG_TELEGRAM") == "1":
         await update.message.reply_text(f"DEBUG: received={text!r} normalized={mood!r}")
->>>>>>> 0ed699c (Update SugarGlitter project)
+    mood = normalize_mood(text)
 
     if not mood:
         await update.message.reply_text(
@@ -71,9 +62,6 @@ async def song_mood_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
-
-<<<<<<< HEAD
-=======
 async def song_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🎶 The song selection was cancelled. If you want another tune, try /song again! 💖"
@@ -81,7 +69,6 @@ async def song_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
->>>>>>> 0ed699c (Update SugarGlitter project)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🌸 Hiii! SugarGlitter just sprinkled into the chat! ✨💖\n"
