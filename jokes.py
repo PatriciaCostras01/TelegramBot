@@ -6,6 +6,8 @@ JOKES = [
     "🌸 What do you call a bear with no teeth? A gummy bear! 🧸🍬",
     "✨ Why was the computer cold? Because it forgot to close its Windows! 🖥️❄️",
     "🎀 What do you call fake spaghetti? An impasta! 🍝😄",
+<<<<<<< HEAD
+=======
     "🍬 Why don’t skeletons fight each other? They don’t have the guts! 💀😂",
     "🌸 Why did the scarecrow win an award? Because he was outstanding in his field! 🌾🏆",
     "✨ What do you call cheese that isn’t yours? Nacho cheese! 🧀🤣",
@@ -38,6 +40,7 @@ JOKES = [
     "🛠️ Why did the QA engineer cross the road? To check if it still works on the other side. 🧐👌",
     "💼 Why did the employee get fired from the calendar factory? She took a day off. 📅🤣",
     "📉 Our project is like a software update: takes longer than expected and nobody asked for it. 😅💼",
+>>>>>>> 0ed699c (Update SugarGlitter project)
 ]
 
 async def random_joke(update, context):

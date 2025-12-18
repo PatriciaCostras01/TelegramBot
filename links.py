@@ -18,5 +18,9 @@ async def linkedIn_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def geeks_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
+<<<<<<< HEAD
         "GeeksforGeeks URL => https://www.geeksforgeeks.org/"
+=======
+        "GeeksforGeeks URL => https://www.geeksforgeeks.org/python/create-a-telegram-bot-using-python/"
+>>>>>>> 0ed699c (Update SugarGlitter project)
     )

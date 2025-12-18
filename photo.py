@@ -1,4 +1,10 @@
 import io
+<<<<<<< HEAD
+=======
+import time
+import asyncio
+import logging
+>>>>>>> 0ed699c (Update SugarGlitter project)
 import numpy as np
 from PIL import Image
 import cv2
@@ -8,15 +14,50 @@ from telegram.ext import ContextTypes
 
 yolo = YOLO("yolov8n.pt")
 
+<<<<<<< HEAD
+=======
+# Rate limiting / concurrency controls
+RATE_LIMIT_SECONDS = 10  # per-user cooldown between image analyses
+MAX_CONCURRENT_INFERENCES = 2  # global concurrent YOLO runs
+
+_last_request: dict[int, float] = {}
+_last_request_lock = asyncio.Lock()
+_inference_semaphore = asyncio.Semaphore(MAX_CONCURRENT_INFERENCES)
+_logger = logging.getLogger(__name__)
+
+>>>>>>> 0ed699c (Update SugarGlitter project)
 
 async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, annotate: bool = False):
     msg = update.effective_message
 
+<<<<<<< HEAD
     file_id = None
     if msg.photo:
         file_id = msg.photo[-1].file_id
     elif msg.document and msg.document.mime_type.startswith("image/"):
         file_id = msg.document.file_id
+=======
+    user_id = (update.effective_user.id if update.effective_user else None) or update.effective_chat.id
+
+    # Per-user cooldown
+    now = time.time()
+    async with _last_request_lock:
+        last = _last_request.get(user_id)
+        if last and now - last < RATE_LIMIT_SECONDS:
+            wait = int(RATE_LIMIT_SECONDS - (now - last))
+            _logger.info("Rate limited user %s (wait %s s)", user_id, wait)
+            await msg.reply_text(f"Please wait {wait} seconds before sending another photo.")
+            return
+        _last_request[user_id] = now
+
+    file_id = None
+    if msg.photo:
+        file_id = msg.photo[-1].file_id
+    elif msg.document:
+        mime = getattr(msg.document, "mime_type", None)
+        if mime and mime.startswith("image/"):
+            file_id = msg.document.file_id
+>>>>>>> 0ed699c (Update SugarGlitter project)
     else:
         await msg.reply_text("Send a photo and she’ll try her best to recognize what’s inside!")
         return
@@ -26,8 +67,21 @@ async def analyze_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, anno
     pil = Image.open(io.BytesIO(img_bytes)).convert("RGB")
     img = np.array(pil)
 
+<<<<<<< HEAD
     results = yolo.predict(img, conf=0.25, verbose=False)
     r = results[0]
+=======
+    # Limit global concurrency and run heavy inference in a thread to avoid blocking the event loop
+    await _inference_semaphore.acquire()
+    try:
+        loop = asyncio.get_running_loop()
+        _logger.info("Starting YOLO inference for user %s", user_id)
+        results = await loop.run_in_executor(None, lambda: yolo.predict(img, conf=0.25, verbose=False))
+        _logger.info("Finished YOLO inference for user %s", user_id)
+        r = results[0]
+    finally:
+        _inference_semaphore.release()
+>>>>>>> 0ed699c (Update SugarGlitter project)
     names = r.names
 
     if r.boxes is None or len(r.boxes) == 0:
